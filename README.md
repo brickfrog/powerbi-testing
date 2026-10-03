@@ -32,11 +32,17 @@ pbip_test/
 
 ## The data is not in Git
 
-The `.gitignore` file excludes `cache.abf` and `localSettings.json`. The `cache.abf` file is the local copy of the data. Git keeps the steps that load the data, but not the data.
+The `.gitignore` file excludes `cache.abf` and `localSettings.json`. The `cache.abf` file is the local copy of the data. Git keeps the queries that load the data, but not the data.
 
 When you open a new clone, Power BI Desktop opens the model without data. You must refresh the data before the visuals show values.
 
-The query reads this file:
+Our real reports load data from shared sources, for example SharePoint and SQL Server. The queries contain the address of each source. As a result, all people refresh from the same source.
+
+Each person signs in to the source with their own credentials. Git does not keep the credentials.
+
+### The sample data in this demo
+
+This demo uses a local file instead of a shared source:
 
 ```
 C:\Program Files\Microsoft Power BI Desktop\bin\SampleData\Financial Sample.xlsx
@@ -44,9 +50,7 @@ C:\Program Files\Microsoft Power BI Desktop\bin\SampleData\Financial Sample.xlsx
 
 The standalone installer of Power BI Desktop puts the file at this path. Other installation methods can put the file at a different path. Then the refresh fails.
 
-If the refresh fails, open **Transform data**. Then change the path in the **Source** step. Do not commit the changed path. The changed path is correct only for your computer.
-
-In a real report, the data source is a shared database or a shared file. All people refresh from the same source with their own credentials. Git does not keep the credentials.
+If the refresh fails, open **Transform data**. Then change the path in the **Source** step. Do not commit the changed path. The changed path is correct only for your computer. Step 7 below shows how to keep the path out of a commit.
 
 ## How to make a change
 
@@ -54,9 +58,10 @@ Before you start, install Power BI Desktop and Git.
 
 CAUTION: Save and close Power BI Desktop before you pull, switch branches, or merge. An open project can write its old version over the new files.
 
-1. Clone the repository:
+1. Clone the repository. Then go into the folder:
    ```
    git clone https://github.com/brickfrog/powerbi-testing.git
+   cd powerbi-testing
    ```
 2. Make a branch for your change:
    ```
@@ -75,6 +80,13 @@ CAUTION: Save and close Power BI Desktop before you pull, switch branches, or me
    git add -A
    git commit -m "Describe the change"
    ```
+   If you changed the **Source** path for your computer, unstage that change before the commit:
+   ```
+   git add -A
+   git reset -p pbip_test/pbip_test.SemanticModel/definition/tables/financials.tmdl
+   git commit -m "Describe the change"
+   ```
+   Git shows each change in the file. Type `y` for the path change. Type `n` for all other changes. If Git shows the path change together with other changes, type `s` to split them first.
 8. Push the branch:
    ```
    git push -u origin my-change
@@ -104,4 +116,4 @@ If a merge conflict occurs, resolve the conflict in the text file. Then open the
 
 - Each person refreshes the data on their own computer. Git does not keep the data or the credentials.
 - All people must use a current version of Power BI Desktop. Older versions can fail to open the PBIR format.
-- A local file path in a query is correct only on computers that have the file at the same path.
+- This demo reads a local file. A local file path is correct only on computers that have the file at the same path. Real reports use shared sources.
