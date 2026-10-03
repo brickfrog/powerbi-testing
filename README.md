@@ -153,9 +153,27 @@ With deployment pipelines, a release is a deployment from Test to Production. Ma
 
 ### Requirements
 
-- Deployment pipelines need workspaces on Fabric capacity: Premium, Premium Per User (PPU), or an F SKU. With Pro licenses only, Git gives history and review, but you publish manually.
+- Deployment pipelines need each workspace on a Premium (P) capacity, a Fabric (F) capacity, or Premium Per User (PPU). Only PPU users can open a PPU workspace.
+- Git integration for a workspace needs a Premium (P) or Fabric (F) capacity. PPU is not sufficient.
+- With Pro licenses only, these Fabric features are not available. A script can publish a `.pbix` file with the Power BI REST API ([Imports](https://learn.microsoft.com/en-us/rest/api/power-bi/imports/post-import-in-group)). But somebody must save the `.pbix` file from the project, and you must build the steps from Development to Production yourself.
 - An on-premises SQL Server needs a gateway connection for each stage. SharePoint Online does not need a gateway.
 - Fabric Git integration supports GitHub and Azure DevOps.
+
+### Side note: government clouds
+
+The US government clouds (GCC, GCC High, and DoD) are separate from the commercial Power BI service. New features arrive in these clouds later. Before you select a method, find out which cloud and which capacity your organization uses:
+
+- The sign-in address shows the cloud: `app.powerbigov.us` is GCC, `app.high.powerbigov.us` is GCC High, and `app.mil.powerbigov.us` is DoD.
+- A diamond icon next to the workspace name shows that the workspace is on a capacity.
+
+Status in October 2026:
+
+- GCC High: Fabric became [generally available on October 1, 2026](https://www.microsoft.com/en-us/microsoft-cloud/blog/us-government/2026/09/02/microsoft-fabric-in-gcc-high-building-the-data-foundation-for-ai/). An existing Premium capacity can also run Fabric.
+- GCC: Microsoft [lists only P and EM capacities](https://learn.microsoft.com/en-us/fabric/enterprise/powerbi/service-government-us-overview). F capacities are not available. Ask your administrator if Fabric is available in your tenant.
+- DoD: Microsoft has not announced a date for Fabric.
+- `fabric-cicd` uses the Fabric REST APIs. Government clouds use different addresses for these APIs, and the APIs can be unavailable. Make sure that they work in your cloud before you select the build script method.
+
+In a government cloud, deployment pipelines on a P capacity or PPU are the safest first choice. With PPU, keep the repository in GitHub or Azure DevOps and publish to the Development workspace from Power BI Desktop, because Git integration needs a capacity.
 
 ## Limits
 
