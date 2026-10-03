@@ -112,6 +112,51 @@ Some files change for many types of edits. For example, `pages.json` changes whe
 
 If a merge conflict occurs, resolve the conflict in the text file. Then open the project in Power BI Desktop. Make sure that the report loads.
 
+## From development to production
+
+This repository shows only the Git part of the workflow. A full setup also controls how changes get to the production reports. The practices below come from the Microsoft documentation for Power BI and Fabric.
+
+### One workspace for each stage
+
+Use three workspaces: Development, Test, and Production. Make changes only in Development. A release moves the changes to Test, and then to Production. Do not publish from Power BI Desktop directly to Production.
+
+### Parameters for data sources
+
+Put the SQL Server name, the database name, and the SharePoint site address in Power Query parameters. Each stage sets its own parameter values during the deployment. As a result, Test reads test data and Production reads production data.
+
+If the addresses are not parameters, the person who publishes last decides which source Production reads.
+
+### Release methods
+
+Microsoft documents these [release methods](https://learn.microsoft.com/en-us/fabric/cicd/manage-deployment):
+
+| Method | How it works | Good fit for |
+|---|---|---|
+| Deployment pipelines | Git connects only to the Development workspace. A deployment moves the content from Development to Test to Production. Deployment rules change the data source parameters for each stage. | Most Power BI teams. This method needs the least engineering work. |
+| One Git branch for each stage | Each workspace syncs from its own branch. A pull request moves a change from one branch to the next. | Teams that want Git to be the only record of each release. |
+| One main branch and a build script | A merge into `main` starts GitHub Actions or Azure DevOps. The script uses [`fabric-cicd`](https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-deploy-fabric-cicd) to deploy the project to each workspace with the values for that stage. | Teams that already use CI/CD for other code. |
+
+A good first step is deployment pipelines, with Git connected to the Development workspace.
+
+### Automatic checks on each pull request
+
+Run checks in GitHub Actions or Azure DevOps for each pull request. Microsoft gives an [example build pipeline](https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-build-pipelines) for this:
+
+- Tabular Editor Best Practice Analyzer examines the semantic model, for example names, unused columns, and DAX patterns.
+- PBI Inspector examines the report against rules for visuals.
+
+Protect the `main` branch. Do not allow direct pushes. Require a review from at least one other person.
+
+### Releases
+
+With deployment pipelines, a release is a deployment from Test to Production. Many teams require an approval before this deployment. With the Git methods, a merge or a tag on `main` starts the deployment. In all methods, Production gets only content that passed the review and the Test stage.
+
+### Requirements
+
+- Deployment pipelines need workspaces on Fabric capacity: Premium, Premium Per User (PPU), or an F SKU. With Pro licenses only, Git gives history and review, but you publish manually.
+- An on-premises SQL Server needs a gateway connection for each stage. SharePoint Online does not need a gateway.
+- Fabric Git integration supports GitHub and Azure DevOps.
+
 ## Limits
 
 - Each person refreshes the data on their own computer. Git does not keep the data or the credentials.
